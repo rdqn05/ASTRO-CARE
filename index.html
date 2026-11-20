@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ASTRO CARE – Titan-Pero smart shield simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF2F5; --surface:#FFFFFF; --surface-2:#F5F8FA; --ink:#142235; --muted:#5A6B7D; --line:#D3DCE4;
+  --teal:#0F7C74; --amber:#B9780E; --orange:#D2621E; --rad:#C8284B; --violet:#6A4FE0; --cyan:#0E8FA3;
+  --space:#0C1B2E; --space-ink:#E6EDF4; --space-muted:#8FA2B6;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1826; --surface:#152234; --surface-2:#1A2A3E; --ink:#E6EDF4; --muted:#93A3B5; --line:#26384E;
+    --teal:#2BB3A6; --amber:#E8AE45; --orange:#FF8A3D; --rad:#FF5C7A; --violet:#9B7BFF; --cyan:#46D6E8;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1826; --surface:#152234; --surface-2:#1A2A3E; --ink:#E6EDF4; --muted:#93A3B5; --line:#26384E;
+  --teal:#2BB3A6; --amber:#E8AE45; --orange:#FF8A3D; --rad:#FF5C7A; --violet:#9B7BFF; --cyan:#46D6E8;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "IBM Plex Sans","IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.ar{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",system-ui,sans-serif;direction:rtl;unicode-bidi:isolate}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+header.top{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
+.brand{display:flex;flex-direction:column;line-height:1.15}
+.brand b{font-size:19px;letter-spacing:.02em}
+.brand span{color:var(--muted);font-size:13px}
+.brand .ar{font-size:13px;color:var(--muted)}
+.top .spacer{flex:1}
+.met{font-size:13px;color:var(--muted);text-align:right}
+.met strong{display:block;color:var(--ink);font-size:16px}
+.overall{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--teal);flex:none}
+.lvl1 .dot,.dot.lvl1{background:var(--amber)} .lvl2 .dot,.dot.lvl2{background:var(--orange)} .lvl3 .dot,.dot.lvl3{background:var(--rad)}
+
+main.grid{display:grid;grid-template-columns:270px minmax(0,1fr) 370px;gap:0;height:calc(100vh - 66px);height:calc(100dvh - 66px);min-height:560px}
+.panel{background:var(--surface);padding:16px 18px;overflow:auto}
+.panel.left{border-right:1px solid var(--line)}
+.panel.right{border-left:1px solid var(--line)}
+.panel h2{font-size:13px;font-weight:600;color:var(--muted);margin:18px 0 8px}
+.panel h2:first-child{margin-top:0}
+.seg{display:flex;flex-direction:column;gap:6px}
+.seg.row{flex-direction:row}
+.seg button,.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:9px 11px;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.seg.row button{flex:1;text-align:center;padding:8px 4px;font-size:13px}
+.seg button[aria-pressed="true"]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,var(--surface));box-shadow:inset 3px 0 0 var(--teal)}
+.seg.row button[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--teal)}
+.seg button small{display:block;color:var(--muted);font-size:12px}
+.btn{display:block;width:100%;margin-bottom:6px}
+.btn.storm{border-color:color-mix(in srgb,var(--amber) 50%,var(--line))}
+.btn.hit{border-color:color-mix(in srgb,var(--rad) 40%,var(--line))}
+.btn[aria-pressed="true"]{background:color-mix(in srgb,var(--violet) 14%,var(--surface))}
+.btn small{display:block;color:var(--muted);font-size:12px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;cursor:pointer}
+.switch input{appearance:none;width:40px;height:23px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.switch input:checked{background:var(--teal)}
+.switch input:checked::after{transform:translateX(17px)}
+.switch span small{display:block;color:var(--muted);font-size:12px}
+.note{color:var(--muted);font-size:12px;margin:6px 0 0}
+
+.stage{position:relative;background:var(--space);min-height:520px;overflow:hidden;color:var(--space-ink)}
+.stage canvas{display:block;width:100%;height:100%;position:absolute;inset:0;touch-action:none}
+.hud{position:absolute;left:16px;top:14px;pointer-events:none}
+.hud .env{font-size:13px;color:var(--space-muted)}
+.hud .rate{font-size:34px;font-weight:600;line-height:1.1}
+.hud .rate small{font-size:14px;color:var(--space-muted);font-weight:400}
+.hud .cmp{font-size:13px;color:var(--space-muted);margin-top:2px}
+.hud .cmp b{color:#7EE0C9;font-weight:600}
+.legend{position:absolute;left:16px;bottom:14px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--space-muted);pointer-events:none;max-width:calc(100% - 32px)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.hint{position:absolute;right:16px;top:16px;font-size:12px;color:var(--space-muted);pointer-events:none}
+.paused{position:absolute;right:16px;bottom:14px;display:none;font-size:12px;font-weight:600;letter-spacing:.06em;padding:4px 9px;border-radius:6px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.2);pointer-events:none}
+.paused.show{display:block}
+.alert{position:absolute;left:50%;bottom:56px;transform:translateX(-50%);width:min(520px,calc(100% - 28px));background:rgba(200,40,75,.92);color:#fff;border-radius:10px;padding:11px 14px 11px 14px;display:none;gap:10px;align-items:flex-start;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:3}
+.alert.show{display:flex}
+.alert.amber{background:rgba(185,120,14,.94)}
+.alert.teal{background:rgba(15,124,116,.94)}
+.alert b{display:block;font-size:15px}
+.alert p{margin:2px 0 0;font-size:13px;opacity:.95}
+.alert .ar{display:block;font-size:13px;opacity:.9;margin-top:3px;text-align:right}
+.alert button{margin-left:auto;background:rgba(255,255,255,.18);border:0;border-radius:6px;padding:4px 9px;cursor:pointer;color:#fff;flex:none}
+.tag{position:absolute;left:0;top:0;pointer-events:none;font-size:11.5px;line-height:1.2;padding:4px 7px;border-radius:6px;background:rgba(12,27,46,.78);border:1px solid rgba(255,255,255,.14);white-space:nowrap;will-change:transform}
+.tag b{font-weight:600}
+.tag .dot{display:inline-block;width:7px;height:7px;margin-right:5px;vertical-align:1px}
+.stage.notags .tag{display:none}
+
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface-2);margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card h3 .ar{font-weight:500;font-size:12.5px;color:var(--muted)}
+.big{font-size:22px;font-weight:600}
+.muted{color:var(--muted)}
+.bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar > i{display:block;height:100%;width:0;background:var(--teal);border-radius:4px;transition:width .3s}
+.kv{display:flex;justify-content:space-between;font-size:13px;margin:4px 0}
+.zone{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;width:100%;text-align:left;background:none}
+.zone + .zone{margin-top:4px}
+.zone:hover{background:var(--surface)}
+.zone.sel{border-color:var(--teal);background:var(--surface)}
+.zone .nm{font-weight:600;font-size:14px}
+.zone .nm .ar{display:block;font-weight:400;color:var(--muted);font-size:12px;text-align:left}
+.zone .st{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;justify-self:end}
+.zone .sub{font-size:12.5px;color:var(--muted)}
+.zone .num{font-size:13px;justify-self:end}
+.zone .bar{grid-column:1/-1;height:4px;margin-top:4px}
+.zone .bar > i{background:var(--amber)}
+.vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.vitals div{background:var(--surface);border-radius:8px;padding:8px 2px}
+.vitals b{display:block;font-size:19px}
+.vitals span{font-size:11.5px;color:var(--muted)}
+canvas.spark{width:100%;height:46px;display:block;margin-top:8px}
+canvas.spec{width:100%;height:96px;display:block}
+.cls{display:grid;grid-template-columns:118px 1fr 40px;gap:5px 8px;align-items:center;font-size:12.5px;margin-top:10px}
+.cls .bar{height:6px}
+.infer{font-size:12px;color:var(--muted);margin-top:8px}
+.log{list-style:none;margin:0;padding:0;font-size:12.5px;max-height:190px;overflow:auto}
+.log li{padding:5px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:54px 1fr;gap:6px}
+.log li:first-child{border-top:0}
+.log time{color:var(--muted)}
+.log .w{color:var(--orange)} .log .c{color:var(--rad)} .log .g{color:var(--teal)}
+footer.foot{margin-top:18px;font-size:12px;color:var(--muted)}
+
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(620px,calc(100% - 24px));max-height:calc(100% - 40px)}
+dialog::backdrop{background:rgba(8,16,28,.55)}
+.dlg{padding:20px 22px}
+.dlg h2{margin:0 0 4px;font-size:19px}
+.dlg .ar{color:var(--muted);font-size:14px;display:block;text-align:right}
+.stack{display:flex;flex-direction:column;gap:3px;margin:16px 0 6px}
+.layer{display:grid;grid-template-columns:1fr auto;padding:0 12px;align-items:center;border-radius:4px;color:#fff;font-size:13px}
+.layer span:last-child{font-weight:600}
+.cmp-bars{margin:16px 0}
+.cmp-bars .kv{margin:10px 0 4px}
+.cmp-bars .bar{height:12px}
+table.att{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+table.att td,table.att th{padding:6px 4px;border-top:1px solid var(--line);text-align:left}
+table.att th{color:var(--muted);font-weight:500}
+.dlg .close{float:right;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 12px;cursor:pointer}
+
+/* رسالة فشل تحميل المكتبة أو WebGL */
+#libError{display:none;position:fixed;inset:0;z-index:9999;background:#0C1B2E;color:#E6EDF4;padding:40px 20px;text-align:center;font-family:"IBM Plex Sans Arabic",sans-serif;direction:rtl}
+#libError h2{color:#FF5C7A;margin:0 0 12px}
+#libError p{max-width:520px;margin:0 auto 10px;line-height:1.7}
+#libError code{background:#152234;padding:2px 6px;border-radius:4px;font-family:monospace}
+
+@media (max-width:1180px){
+  main.grid{grid-template-columns:1fr 1fr;height:auto}
+  .panel{overflow:visible}
+  .stage{grid-column:1/-1;order:-1;height:62vh;height:62dvh;min-height:420px}
+  .panel.right{max-height:none;border-left:1px solid var(--line)}
+  .panel.left{border-right:0}
+}
+@media (max-width:720px){
+  main.grid{grid-template-columns:1fr}
+  .stage{height:58vh;height:58dvh;min-height:360px}
+  .panel.right{border-left:0;border-top:1px solid var(--line)}
+  header.top{flex-wrap:wrap;padding:12px 14px}
+  .met{order:3;text-align:left}
+  .hud .rate{font-size:26px}
+  .hint{display:none}
+  .tag{font-size:10.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- رسالة احتياطية إذا فشل تحميل المكتبة أو لم يدعم المتصفح WebGL -->
+<div id="libError" role="alert" lang="ar">
+  <h2 id="libTitle">تعذّر تحميل مكتبة العرض</h2>
+  <p id="libText">المحاكي يحتاج مكتبة <code>three.js</code> من الإنترنت. تحقق من اتصالك ثم أعد تحميل الصفحة.</p>
+  <p id="libText2">إذا كنت تشغّله محليًا، شغّل خادمًا بسيطًا مثل <code>python -m http.server</code> بدلاً من فتح الملف مباشرة.</p>
+  <button onclick="location.reload()" style="margin-top:16px;padding:10px 20px;border-radius:8px;border:1px solid #46D6E8;background:transparent;color:#46D6E8;cursor:pointer;font-family:inherit">إعادة المحاولة</button>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <b>ASTRO CARE</b>
+    <span>Titan-Pero smart shield simulator <span class="ar" lang="ar">محاكي درع تيتان-بيرو الذكي</span></span>
+  </div>
+  <div class="spacer"></div>
+  <div class="met">Mission elapsed<strong id="met">0d 00:00</strong></div>
+  <div class="overall" id="overall" role="status" aria-live="polite"><span class="dot"></span><span id="overallTxt">All systems nominal</span></div>
+</header>
+
+<main class="grid">
+  <section class="panel left" aria-label="Mission controls">
+    <h2>Mission environment</h2>
+    <div class="seg" id="envSeg"></div>
+    <p class="note" id="envNote"></p>
+
+    <h2>Events</h2>
+    <button class="btn storm" id="btnStorm">Trigger solar storm<small>Solar particle event, peaks in about 1 hour</small></button>
+    <button class="btn hit" id="btnHit">Micrometeoroid strike<small>Damages a zone, then self-heals</small></button>
+    <button class="btn" id="btnEclipse" aria-pressed="false">Enter shadow<small>Cuts sunlight to the harvesting layer</small></button>
+
+    <h2>Shield</h2>
+    <label class="switch"><span>Perovskite layer<small>Turn off to compare an unshielded suit</small></span><input type="checkbox" id="shieldToggle" checked></label>
+
+    <h2>Simulation speed</h2>
+    <div class="seg row" id="speedSeg">
+      <button data-s="1" aria-pressed="false">1 min/s</button>
+      <button data-s="10" aria-pressed="true">10 min/s</button>
+      <button data-s="60" aria-pressed="false">1 h/s</button>
+    </div>
+    <button class="btn" id="btnPause" aria-pressed="false" style="margin-top:8px">Pause</button>
+
+    <h2>View</h2>
+    <label class="switch"><span>X-ray organs</span><input type="checkbox" id="xrayToggle"></label>
+    <label class="switch"><span>Zone labels</span><input type="checkbox" id="tagToggle" checked></label>
+    <label class="switch"><span>Auto-rotate</span><input type="checkbox" id="rotToggle"></label>
+
+    <h2>Project</h2>
+    <button class="btn" id="btnStack">Layer stack and assumptions</button>
+    <button class="btn" id="btnReset">Reset mission</button>
+  <footer class="foot">Simulated data for demonstration. Reference dose rates are approximate public figures (ISS dosimetry, Chang’e-4 lunar surface, Curiosity RAD cruise). Shield attenuation, layer split and power numbers are demo assumptions; see “Layer stack and assumptions”.</footer>
+  </section>
+
+  <section class="stage" id="stage" aria-label="3D vest view">
+    <div class="hud">
+      <div class="env" id="hudEnv">Low Earth orbit</div>
+      <div class="rate"><span id="hudRate">0.00</span> <small>mSv/day at the skin</small></div>
+      <div class="cmp" id="hudCmp">Unshielded <span id="hudRaw">0.00</span> mSv/day, <b id="hudCut">0%</b> blocked</div>
+    </div>
+    <div class="alert" id="alert" role="alert">
+      <div><b id="alertTitle"></b><p id="alertBody"></p><span class="ar" id="alertAr" lang="ar"></span></div>
+      <button id="alertX" aria-label="Dismiss alert">Dismiss</button>
+    </div>
+    <div class="paused" id="pausedTag">PAUSED</div>
+    <div class="legend">
+      <span><i style="background:#9B7BFF"></i>Cosmic rays</span>
+      <span><i style="background:#FFB23E"></i>Solar protons</span>
+      <span><i style="background:#46D6E8"></i>Trapped electrons</span>
+      <span><i style="background:#FFD27A"></i>Absorbed</span>
+      <span><i style="background:#FF3B5C"></i>Passed through</span>
+    </div>
+    <div class="hint">Drag to rotate, pinch or scroll to zoom, tap a zone</div>
+  </section>
+
+  <section class="panel right" aria-label="Telemetry">
+    <div class="card">
+      <h3>Astronaut exposure <span class="ar" lang="ar">الجرعة الإشعاعية</span></h3>
+      <div class="kv"><span class="muted">Skin dose this mission (zone-weighted)</span><span><b class="big" id="effDose">0.00</b> mSv</span></div>
+      <div class="bar"><i id="careerBar"></i></div>
+      <div class="kv"><span class="muted">Of NASA’s 600 mSv career limit</span><span id="careerPct">0.000%</span></div>
+      <div class="kv"><span class="muted">Dose avoided by the shield</span><span id="avoided">0.00 mSv</span></div>
+      <canvas class="spark" id="doseSpark" aria-label="Dose rate history, shielded and unshielded"></canvas>
+      <div class="kv" style="font-size:12px"><span class="muted"><i style="display:inline-block;width:10px;height:2px;background:var(--teal);vertical-align:middle"></i> shielded <i style="display:inline-block;width:10px;height:2px;background:var(--rad);vertical-align:middle;margin-left:8px"></i> unshielded</span><span class="muted">last few hours</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Four monitored zones <span class="ar" lang="ar">المناطق الحيوية الأربع</span></h3>
+      <div id="zoneList"></div>
+    </div>
+
+    <div class="card">
+      <h3>Vital signs <span class="ar" lang="ar">العلامات الحيوية</span></h3>
+      <div class="vitals">
+        <div><b id="vHR">72</b><span>Heart rate</span></div>
+        <div><b id="vSpO2">98</b><span>SpO₂ %</span></div>
+        <div><b id="vTemp">33.6</b><span>Skin °C</span></div>
+        <div><b id="vResp">14</b><span>Breaths/min</span></div>
+      </div>
+      <canvas class="spark" id="hrSpark" aria-label="Heart rate history"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>On-device AI (TinyML) <span class="ar" lang="ar">الذكاء الاصطناعي الطرفي</span></h3>
+      <div class="muted" style="font-size:12.5px;margin-bottom:6px">CZT energy spectrum, 10 keV to 10 MeV</div>
+      <canvas class="spec" id="spec" aria-label="Detector energy spectrum"></canvas>
+      <div class="cls" id="cls"></div>
+      <div class="infer" id="infer">Inference 3.1 ms on the suit, no ground link needed</div>
+    </div>
+
+    <div class="card">
+      <h3>Power <span class="ar" lang="ar">حصاد الطاقة</span></h3>
+      <div class="kv"><span class="muted">Harvested from sunlight</span><span id="pSun">0 mW</span></div>
+      <div class="kv"><span class="muted">Harvested from radiation</span><span id="pRad">0 mW</span></div>
+      <div class="kv"><span class="muted">Sensors and AI draw</span><span id="pDraw">57 mW</span></div>
+      <div class="bar" style="margin-top:8px"><i id="battBar" style="background:var(--amber)"></i></div>
+      <div class="kv"><span id="pState" class="muted">Self-powered</span><span id="batt">82%</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Event log</h3>
+      <ul class="log" id="log"></ul>
+    </div>
+  </section>
+</main>
+
+<dialog id="stackDlg">
+  <div class="dlg">
+    <button class="close" id="stackX">Close</button>
+    <h2>Titan-Pero layer stack, 2.45 mm</h2>
+    <span class="ar" lang="ar">مقارنة الطبقات الهندسية</span>
+    <div class="stack" id="stackViz"></div>
+    <p class="note">Layer thicknesses are placeholders that add up to the deck’s 2.45 mm. Replace them with your measured spec.</p>
+    <div class="cmp-bars">
+      <div class="kv"><span>Traditional heavy shielding</span><span>100%</span></div>
+      <div class="bar"><i style="width:100%;background:var(--muted)"></i></div>
+      <div class="kv"><span>Titan-Pero shield, total weight</span><span>6% (−94%)</span></div>
+      <div class="bar"><i style="width:6%;background:var(--teal)"></i></div>
+      <div class="kv"><span>Unit cost, $188.88M vs ~$130K</span><span>&gt;98% saving</span></div>
+      <div class="bar"><i style="width:2%;background:var(--amber)"></i></div>
+    </div>
+    <h3 style="font-size:14px;margin:16px 0 0">Simulation assumptions</h3>
+    <table class="att">
+      <tr><th>Particle</th><th>Share stopped by the layer</th><th>Why</th></tr>
+      <tr><td>Galactic cosmic rays</td><td>30%</td><td>Heavy, very energetic ions; no thin layer stops most of them</td></tr>
+      <tr><td>Solar protons</td><td>70%</td><td>Lower energy; the main threat during solar storms</td></tr>
+      <tr><td>Trapped electrons</td><td>90%</td><td>Easiest to stop with a dense thin layer</td></tr>
+    </table>
+    <p class="note">Damage lowers a zone’s protection in proportion to its integrity until self-healing restores it (about 3 simulated hours). The dose shown is a skin dose weighted per zone, not an ICRP effective dose.</p>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ========== فحص تحميل المكتبات ========== */
+(function(){
+  if (!window.THREE || !THREE.OrbitControls) {
+    var e = document.getElementById('libError');
+    if (e) e.style.display = 'block';
+  }
+})();
+</script>
+<script>
+(function(){
+"use strict";
+if (!window.THREE || !THREE.OrbitControls) return; // لا تشغّل المحاكي بدون مكتبة
+
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- model ---------------- */
+const ENVS = {
+  leo:  {name:'Low Earth orbit (ISS)', ar:'مدار أرضي منخفض', base:0.5,  mix:{gcr:.45,proton:.25,electron:.30}, sun:'orbit', body:'earth', note:'Reference: about 0.3 to 0.8 mSv/day aboard the ISS. Sunlight cycles with each 92-minute orbit.'},
+  belt: {name:'Van Allen belt transit', ar:'عبور أحزمة فان ألن', base:12, mix:{gcr:.10,proton:.40,electron:.50}, sun:1, body:'belt', note:'Short, intense pass through trapped particles. Illustrative rate.'},
+  moon: {name:'Lunar surface', ar:'سطح القمر', base:1.37, mix:{gcr:.75,proton:.20,electron:.05}, sun:1, body:'moon', note:'Reference: Chang’e-4 measured about 1.37 mSv/day on the far side.'},
+  mars: {name:'Mars transit', ar:'الرحلة إلى المريخ', base:1.84, mix:{gcr:.90,proton:.10,electron:0}, sun:.45, body:'mars', note:'Reference: Curiosity’s RAD measured about 1.8 mSv/day in cruise.'}
+};
+const STORM_PEAK_RATE = 120; // mSv/day إضافية عند ذروة العاصفة الشمسية
+const TYPES = {
+  gcr:     {label:'Cosmic rays',       color:new THREE.Color(0x9B7BFF), speed:10, atten:.30, len:.55},
+  proton:  {label:'Solar protons',     color:new THREE.Color(0xFFB23E), speed:6.5, atten:.70, len:.35},
+  electron:{label:'Trapped electrons', color:new THREE.Color(0x46D6E8), speed:8,  atten:.90, len:.28}
+};
+const METEOR_COL = new THREE.Color(1,1,1);
+const ZONES = [
+  {id:'neck',  name:'Neck and thyroid', ar:'الرقبة والغدة الدرقية', organs:'Thyroid',                    y0:1.475, y1:1.60, weight:.90},
+  {id:'chest', name:'Chest',            ar:'القلب والرئتان',        organs:'Heart and lungs',            y0:1.245, y1:1.455, weight:1.0},
+  {id:'abd',   name:'Abdomen',          ar:'البطن',                organs:'Stomach, liver, colon',      y0:1.075, y1:1.230, weight:.95},
+  {id:'pelvis',name:'Pelvis and spine', ar:'الحوض والعمود الفقري', organs:'Bone marrow, reproductive',  y0:0.900, y1:1.060, weight:.85}
+];
+const STATUS = [
+  {label:'Nominal',  ar:'طبيعي', hex:0x2BB3A6},
+  {label:'Elevated', ar:'مرتفع', hex:0xE8AE45},
+  {label:'Warning',  ar:'تحذير', hex:0xFF8A3D},
+  {label:'Critical', ar:'حرج',   hex:0xFF3B5C}
+];
+const statusOf = r => r < 2 ? 0 : r < 10 ? 1 : r < 40 ? 2 : 3;
+const DRAW_MW = 57, BATT_MWH = 2000, CAREER = 600;
+
+let S;
+function freshState(prev){
+  return {
+    env:(prev && prev.env) || 'leo', simMin:0, speed:(prev && prev.speed) || 10,
+    shield:true, eclipse:false, storm:null, stormAlerted:false, peakAlerted:false,
+    paused:false,
+    zones: ZONES.map(()=>({rate:0, raw:0, cum:0, rawCum:0, integ:1, status:0, healing:false})),
+    sel:(prev && prev.sel !== undefined) ? prev.sel : 1, batt:82, sunF:1, harvestSun:0, harvestRad:0,
+    hr:72, spo2:98, temp:33.6, resp:14, stress:0,
+    hits:{gcr:0,proton:0,electron:0,bg:0}, cls:{gcr:.3,proton:.2,electron:.3,bg:.2},
+    doseHist:[], rawHist:[], hrHist:[], lastWorst:0,
+    alertActive:false,
+    avgRate:0, avgRaw:0, worst:0
+  };
+}
+S = freshState();
+
+/* ---------------- three.js scene ---------------- */
+const stage = $('stage');
+function failScreen(title, text, text2){
+  $('libTitle').textContent = title; $('libText').textContent = text; $('libText2').textContent = text2 || '';
+  $('libError').style.display = 'block';
+}
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+} catch (err) {
+  failScreen('WebGL غير مدعوم', 'متصفحك أو جهازك لا يدعم WebGL، وهو لازم لعرض المجسم ثلاثي الأبعاد.', 'جرّب متصفحًا حديثًا، أو فعّل تسريع الأجهزة (Hardware acceleration) من إعدادات المتصفح.');
+  return;
+}
+const MAX_DPR = Math.min(window.devicePixelRatio || 1, window.innerWidth < 720 ? 1.5 : 2);
+renderer.setPixelRatio(MAX_DPR);
+renderer.outputEncoding = THREE.sRGBEncoding;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0C1B2E);
+const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 200);
+camera.position.set(2.1, 1.65, 3.3);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.18, 0);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.minDistance = 1.3; controls.maxDistance = 9; controls.enablePan = false;
+controls.autoRotateSpeed = 0.9;
+
+scene.add(new THREE.HemisphereLight(0xbcd3ff, 0x1a2333, 0.55));
+const sunDir = new THREE.Vector3(1, .55, .8).normalize();
+const sun = new THREE.DirectionalLight(0xfff2dd, 1.4);
+sun.position.copy(sunDir).multiplyScalar(10);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x6fa8ff, .45); rim.position.set(-3, 2, -4); scene.add(rim);
+
+function randDir(){ const u=Math.random()*2-1, t=Math.random()*Math.PI*2, s=Math.sqrt(1-u*u); return new THREE.Vector3(s*Math.cos(t), u, s*Math.sin(t)); }
+
+(function(){
+  const n = 1600, p = new Float32Array(n*3);
+  for (let i=0;i<n;i++){ const v = randDir(); v.multiplyScalar(60+Math.random()*30); p.set([v.x,v.y,v.z], i*3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xcfe0ff, size:.18, sizeAttenuation:true, transparent:true, opacity:.8})));
+})();
+
+const bodyGroup = new THREE.Group(); bodyGroup.position.set(-11, -5, -26); scene.add(bodyGroup);
+const bodyMat = new THREE.MeshStandardMaterial({color:0x3b6fb3, roughness:.9});
+const bodyMesh = new THREE.Mesh(new THREE.SphereGeometry(4.2, 48, 32), bodyMat); bodyGroup.add(bodyMesh);
+const atmo = new THREE.Mesh(new THREE.SphereGeometry(4.45, 48, 32), new THREE.MeshBasicMaterial({color:0x6fb2ff, transparent:true, opacity:.12, side:THREE.BackSide}));
+bodyGroup.add(atmo);
+const beltMat = new THREE.MeshBasicMaterial({color:0x46D6E8, transparent:true, opacity:.10, side:THREE.DoubleSide, depthWrite:false});
+const belt1 = new THREE.Mesh(new THREE.TorusGeometry(6.4, 1.0, 16, 80), beltMat); belt1.rotation.x = Math.PI/2.3; bodyGroup.add(belt1);
+const belt2 = new THREE.Mesh(new THREE.TorusGeometry(9.5, 1.6, 16, 80), beltMat.clone()); belt2.material.opacity=.06; belt2.rotation.x = Math.PI/2.3; bodyGroup.add(belt2);
+function applyBody(){
+  const b = ENVS[S.env].body;
+  const map = {earth:[0x24508c,true,false], belt:[0x24508c,true,true], moon:[0x9a9a9a,false,false], mars:[0xb5532d,false,false]};
+  const [c, a, bl] = map[b]; bodyMat.color.setHex(c); atmo.visible = a; belt1.visible = belt2.visible = bl;
+  if (b==='mars'){ bodyGroup.position.set(-12,-4,-36); bodyGroup.scale.setScalar(.8); }
+  else if (b==='moon'){ bodyGroup.position.set(-6,-8.5,-16); bodyGroup.scale.setScalar(1.3); }
+  else { bodyGroup.position.set(-12,-6,-34); bodyGroup.scale.setScalar(.7); }
+}
+
+/* astronaut */
+const figure = new THREE.Group(); scene.add(figure);
+const Z_SCALE = 0.68;
+const PROFILE = [[0.86,0.0],[0.88,0.15],[0.93,0.185],[1.0,0.19],[1.08,0.172],[1.16,0.166],[1.24,0.18],[1.32,0.2],[1.40,0.205],[1.45,0.19],[1.49,0.13],[1.52,0.072],[1.56,0.063],[1.62,0.063]];
+function profileR(y){
+  if (y <= PROFILE[0][0]) return PROFILE[0][1];
+  for (let i=1;i<PROFILE.length;i++){ const [y1,r1]=PROFILE[i], [y0,r0]=PROFILE[i-1]; if (y<=y1) return r0+(r1-r0)*(y-y0)/(y1-y0); }
+  return PROFILE[PROFILE.length-1][1];
+}
+
+/* ---- helpers ---- */
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const AX_Y = V3(0,1,0), AX_Z = V3(0,0,1), AX_NY = V3(0,-1,0);
+const MAX_ANISO = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+
+/* ---- procedural fabric textures (weave, ripstop, panel seams, roughness variation) ---- */
+function canvasTex(size, draw, srgb){
+  const c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = MAX_ANISO;
+  if (srgb) t.encoding = THREE.sRGBEncoding; t.repeat.set(2, 1.5); return t;
+}
+function drawWeave(g, n, col, ripCol){
+  g.fillStyle = col;
+  for (let i=0;i<n;i+=4){ g.fillRect(i,0,2,n); g.fillRect(0,i,n,2); }
+  g.fillStyle = ripCol;
+  for (let i=0;i<n;i+=32){ g.fillRect(i,0,1,n); g.fillRect(0,i,n,1); }
+}
+function drawSeams(g, n, col, w, stitch){
+  const Vx = [1, n/2, n-1], Hy = [n*.33, n*.72];
+  g.strokeStyle = col; g.lineWidth = w; g.setLineDash([]);
+  Vx.forEach(x=>{ g.beginPath(); g.moveTo(x,0); g.lineTo(x,n); g.stroke(); });
+  Hy.forEach(y=>{ g.beginPath(); g.moveTo(0,y); g.lineTo(n,y); g.stroke(); });
+  if (stitch){
+    g.setLineDash([7,5]); g.lineWidth = 1.2;
+    Vx.forEach(x=>[-6,6].forEach(o=>{ g.beginPath(); g.moveTo(x+o,0); g.lineTo(x+o,n); g.stroke(); }));
+    Hy.forEach(y=>[-6,6].forEach(o=>{ g.beginPath(); g.moveTo(0,y+o); g.lineTo(n,y+o); g.stroke(); }));
+    g.setLineDash([]);
+  }
+}
+const suitMap = canvasTex(512, (g,n)=>{
+  g.fillStyle = '#e9edf2'; g.fillRect(0,0,n,n);
+  drawWeave(g, n, 'rgba(20,34,53,.05)', 'rgba(20,34,53,.09)');
+  for (let k=0;k<2600;k++){ g.fillStyle = 'rgba(255,255,255,'+(Math.random()*.18).toFixed(3)+')'; g.fillRect(Math.random()*n, Math.random()*n, 2, 2); }
+  drawSeams(g, n, 'rgba(70,84,104,.55)', 2, true);
+}, true);
+const suitBump = canvasTex(512, (g,n)=>{
+  g.fillStyle = '#808080'; g.fillRect(0,0,n,n);
+  drawWeave(g, n, 'rgba(255,255,255,.28)', 'rgba(255,255,255,.35)');
+  drawSeams(g, n, '#262626', 5, false);
+}, false);
+const suitRough = canvasTex(256, (g,n)=>{
+  g.fillStyle = '#e2e2e2'; g.fillRect(0,0,n,n);
+  for (let k=0;k<70;k++){
+    const x = Math.random()*n, y = Math.random()*n, r = 8+Math.random()*26, gr = g.createRadialGradient(x,y,0,x,y,r);
+    const dark = Math.random() < .5; gr.addColorStop(0, dark ? 'rgba(170,170,170,.6)' : 'rgba(255,255,255,.5)'); gr.addColorStop(1, 'rgba(128,128,128,0)');
+    g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2);
+  }
+  drawSeams(g, n, '#ffffff', 3, false);
+}, false);
+
+/* ---- tiny equirect "studio sky" so metals and the visor have something to reflect ---- */
+const ENV = (function(){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0,0,0,128);
+  gr.addColorStop(0,'#0b1a33'); gr.addColorStop(.42,'#5d86c4'); gr.addColorStop(.5,'#fff1d6'); gr.addColorStop(.58,'#2a3b57'); gr.addColorStop(1,'#10243f');
+  g.fillStyle = gr; g.fillRect(0,0,256,128);
+  const sg = g.createRadialGradient(60,48,0,60,48,34); sg.addColorStop(0,'rgba(255,250,235,1)'); sg.addColorStop(1,'rgba(255,250,235,0)');
+  g.fillStyle = sg; g.fillRect(0,0,256,128);
+  const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.encoding = THREE.sRGBEncoding; return t;
+})();
+
+/* ---- materials; every suit material fades into an X-ray shell with a fresnel rim ---- */
+const xrayMats = [];
+function stdMat(o, xrOp){
+  const m = new THREE.MeshStandardMaterial(o); m.transparent = true;
+  m.userData = {xrOp:xrOp, xr:{value:0}, c0:m.color.clone(), e0:m.emissive.clone()};
+  m.onBeforeCompile = sh=>{
+    sh.uniforms.uXr = m.userData.xr;
+    sh.fragmentShader = 'uniform float uXr;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
+      'float xrim = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 2.2);\n' +
+      'gl_FragColor.a = clamp(gl_FragColor.a + xrim*uXr*0.55, 0.0, 1.0);\n' +
+      'gl_FragColor.rgb += vec3(0.25,0.62,0.92)*xrim*uXr*0.85;\n#include <dithering_fragment>');
+  };
+  xrayMats.push(m); return m;
+}
+const suitMat = stdMat({color:0xE9EDF2, roughness:.9, metalness:0, map:suitMap, bumpMap:suitBump, bumpScale:1.4, roughnessMap:suitRough, envMap:ENV, envMapIntensity:.22}, .12);
+const darkMat = stdMat({color:0x6d7784, roughness:.8, metalness:.1, bumpMap:suitBump, bumpScale:2, envMap:ENV, envMapIntensity:.2}, .2);
+const ringMat = stdMat({color:0xB9C2CC, roughness:.32, metalness:.9, envMap:ENV, envMapIntensity:1}, .25);
+const helmMat = stdMat({color:0xF2F5F8, roughness:.3, metalness:.05, envMap:ENV, envMapIntensity:.5}, .2);
+const packMat = stdMat({color:0xDDE2E8, roughness:.55, metalness:.1, map:suitMap, bumpMap:suitBump, bumpScale:1, envMap:ENV, envMapIntensity:.4}, .14);
+const padMat  = stdMat({color:0x4a5563, roughness:.7, metalness:.05, bumpMap:suitBump, bumpScale:1.5}, .2);
+const visorMat = stdMat({color:0xC9962E, metalness:1, roughness:.12, emissive:0x2a1a05, envMap:ENV, envMapIntensity:1.5, side:THREE.DoubleSide}, .28);
+const ledOnMat = new THREE.MeshBasicMaterial({color:0x7EE0C9}), ledAmbMat = new THREE.MeshBasicMaterial({color:0xE8AE45});
+
+/* ---- geometry helpers ---- */
+function put(geo, mat, x, y, z, parent){ const m = new THREE.Mesh(geo, mat); m.position.set(x,y,z); (parent||figure).add(m); return m; }
+function ball(p, r, mat, sc){ const m = put(new THREE.SphereGeometry(r,28,18), mat, p[0],p[1],p[2]); if (sc) m.scale.set(sc[0],sc[1],sc[2]); return m; }
+function seg(a, b, r0, r1, mat){
+  const A = V3(...a), B = V3(...b), d = B.clone().sub(A), L = d.length();
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, L, 28, 1), mat);
+  m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(AX_Y, d.normalize()); figure.add(m); return m;
+}
+function limbRing(a, b, r0, r1, t, extra, tube, mat){
+  const A = V3(...a), B = V3(...b), p = A.clone().lerp(B, t), R = r0 + (r1-r0)*t + extra;
+  const m = new THREE.Mesh(new THREE.TorusGeometry(R, tube, 10, 36), mat);
+  m.position.copy(p); m.quaternion.setFromUnitVectors(AX_Z, B.clone().sub(A).normalize()); figure.add(m); return m;
+}
+function bevelBox(w, h, d, b){
+  const x = w/2-b, y = h/2-b, s = new THREE.Shape();
+  s.moveTo(-x,-y); s.lineTo(x,-y); s.lineTo(x,y); s.lineTo(-x,y); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, {depth:Math.max(.0005, d-2*b), bevelEnabled:true, bevelThickness:b, bevelSize:b, bevelSegments:2, curveSegments:1});
+  g.center(); return g;
+}
+
+/* ---- sculpted torso (hard upper torso body) ---- */
+const torsoGeo = new THREE.LatheGeometry(PROFILE.map(([y,r])=>new THREE.Vector2(r,y)), 72);
+(function(){ /* subtle pectoral, abdomen and scapula shaping, kept under the vest offset (.026) */
+  const p = torsoGeo.attributes.position;
+  for (let i=0;i<p.count;i++){
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), r = Math.hypot(x,z); if (r < 1e-4) continue;
+    const th = Math.atan2(x,z), c1 = Math.cos(th-.5), c2 = Math.cos(th+.5), front = Math.max(0,Math.cos(th)), back = Math.max(0,-Math.cos(th));
+    let d = .012*Math.exp(-Math.pow((y-1.36)/.06,2))*(Math.pow(Math.max(0,c1),6)+Math.pow(Math.max(0,c2),6));
+    d += .008*Math.exp(-Math.pow((y-1.14)/.06,2))*front;
+    d += .007*Math.exp(-Math.pow((y-1.38)/.07,2))*back*Math.pow(Math.abs(Math.sin(th)),1.5);
+    const k = (r+d)/r; p.setX(i, x*k); p.setZ(i, z*k);
+  }
+})();
+const torso = new THREE.Mesh(torsoGeo, suitMat); torso.scale.z = Z_SCALE; figure.add(torso);
+
+/* lower torso / hip brief and waist bearing ring */
+const brief = new THREE.Mesh(new THREE.LatheGeometry([[0,.79],[.07,.795],[.125,.82],[.155,.855],[.172,.885],[.178,.905]].map(([r,y])=>new THREE.Vector2(r,y)), 48), suitMat);
+brief.scale.z = Z_SCALE; figure.add(brief);
+const waistRing = put(new THREE.TorusGeometry(.18, .016, 12, 56), ringMat, 0, .895, 0); waistRing.rotation.x = Math.PI/2; waistRing.scale.set(1,1,1); waistRing.scale.y = Z_SCALE;
+/* upper chest yoke seam ring (also hides the gap between the neck and chest vest segments) */
+const yokeRing = put(new THREE.TorusGeometry(profileR(1.465)+.012, .012, 12, 56), ringMat, 0, 1.465, 0); yokeRing.rotation.x = Math.PI/2; yokeRing.scale.y = Z_SCALE;
+/* neck bearing collar + helmet lock ring */
+const collar = put(new THREE.CylinderGeometry(.1, .108, .03, 40), ringMat, 0, 1.598, 0);
+const lockRing = put(new THREE.TorusGeometry(.104, .013, 10, 40), ringMat, 0, 1.612, 0); lockRing.rotation.x = Math.PI/2;
+for (let k=0;k<6;k++){ const a = k/6*Math.PI*2; const b = put(new THREE.BoxGeometry(.024,.014,.014), darkMat, Math.sin(a)*.118, 1.606, Math.cos(a)*.118); b.rotation.y = a; }
+
+/* ---- arms: tapered segments, shoulder / elbow joints, wrist cuffs, EVA gloves ---- */
+function glove(wr, d, s){
+  const g = new THREE.Group(); g.position.set(...wr); g.quaternion.setFromUnitVectors(AX_NY, d); figure.add(g);
+  put(new THREE.CylinderGeometry(.052,.047,.03,24), ringMat, 0,-.01,0, g);              // cuff ring
+  put(new THREE.TorusGeometry(.05,.006,8,24), darkMat, 0,-.026,0, g).rotation.x = Math.PI/2;
+  const palm = put(new THREE.SphereGeometry(.05,24,16), suitMat, 0,-.06,0, g); palm.scale.set(1,.9,.55);
+  put(bevelBox(.05,.04,.008,.002), darkMat, 0,-.06,-.026, g);                          // palm grip pad
+  [-.0255,-.0085,.0085,.0255].forEach((fx,i)=>{
+    const len = i===1||i===2 ? .034 : .03;
+    put(new THREE.CylinderGeometry(.0105,.0105,len,10), suitMat, fx,-.1-len/2+.005,0, g);
+    const tip = put(new THREE.CylinderGeometry(.0098,.0098,.024,10), suitMat, fx,-.1-len-.008,-.006, g); tip.rotation.x = .5;
+    put(new THREE.SphereGeometry(.0102,10,8), darkMat, fx,-.1-len-.018,-.013, g);
+  });
+  const th = put(new THREE.CylinderGeometry(.011,.012,.04,10), suitMat, -s*.048,-.07,.004, g); th.rotation.z = -s*.52;
+  put(new THREE.SphereGeometry(.0112,10,8), darkMat, -s*.062,-.09,.004, g);
+}
+[-1,1].forEach(s=>{
+  const sh = [.235*s,1.43,0], el = [.30*s,1.16,.02], wr = [.33*s,.93,.08];
+  ball(sh, .072, suitMat, [1,.93,1.05]);
+  const cap = put(new THREE.SphereGeometry(.079,28,12,0,Math.PI*2,0,1.0), suitMat, sh[0], sh[1]+.008, 0); cap.scale.set(1.05,.8,1.1);   // shoulder cap
+  limbRing(sh, el, .064, .053, .07, .012, .011, ringMat);                                  // scye bearing
+  seg(sh, el, .064, .053, suitMat);                                                        // upper arm
+  limbRing(sh, el, .064, .053, .5, .003, .005, darkMat);
+  ball(el, .057, suitMat);                                                                 // elbow
+  limbRing(sh, el, .064, .053, .96, .008, .009, ringMat);
+  seg(el, wr, .054, .042, suitMat);                                                        // forearm
+  limbRing(el, wr, .054, .042, .08, .008, .008, ringMat);
+  limbRing(el, wr, .054, .042, .55, .003, .005, darkMat);
+  limbRing(el, wr, .054, .042, .96, .012, .01, ringMat);                                   // wrist ring
+  glove(wr, V3(...wr).sub(V3(...el)).normalize(), s);
+});
+
+/* ---- legs: thigh / hip, knee, calf / ankle, boots with sole tread ---- */
+function boot(s){
+  const x = .12*s;
+  put(new THREE.CylinderGeometry(.057,.063,.09,24), suitMat, x,.108,0);                    // shaft
+  put(new THREE.TorusGeometry(.066,.01,8,28), ringMat, x,.152,0).rotation.x = Math.PI/2;   // ankle ring
+  put(bevelBox(.12,.07,.22,.016), suitMat, x,.056,.045);                                   // boot body
+  const toe = put(new THREE.SphereGeometry(.06,24,14), suitMat, x,.05,.145); toe.scale.set(1,.62,1.05);
+  put(bevelBox(.108,.04,.06,.01), darkMat, x,.032,-.065);                                  // heel block
+  put(bevelBox(.136,.022,.27,.008), darkMat, x,.011,.05);                                  // sole
+  for (let k=0;k<7;k++) put(new THREE.BoxGeometry(.142,.006,.012), darkMat, x,.003,-.05+k*.032); // tread lugs
+  put(bevelBox(.1,.012,.04,.004), padMat, x,.098,.1);                                      // instep strap
+}
+[-1,1].forEach(s=>{
+  const hip = [.10*s,.92,0], knee = [.115*s,.50,.01], ank = [.12*s,.12,0];
+  ball(hip, .086, suitMat, [1,.95,1]);
+  limbRing(hip, knee, .082, .066, .04, .012, .011, ringMat);                               // hip bearing
+  seg(hip, knee, .082, .066, suitMat);                                                     // thigh
+  limbRing(hip, knee, .082, .066, .5, .003, .005, darkMat);
+  ball(knee, .067, suitMat);                                                               // knee
+  ball([.115*s,.50,.058], .052, padMat, [1,1.15,.55]);                                     // knee pad
+  limbRing(hip, knee, .082, .066, .97, .009, .01, ringMat);
+  seg(knee, ank, .064, .05, suitMat);                                                      // calf
+  limbRing(knee, ank, .064, .05, .05, .008, .009, ringMat);
+  limbRing(knee, ank, .064, .05, .55, .003, .005, darkMat);
+  limbRing(knee, ank, .064, .05, .97, .012, .01, ringMat);                                 // ankle
+  boot(s);
+});
+
+/* ---- helmet, gold visor, collar and side details ---- */
+const helmet = put(new THREE.SphereGeometry(.155,56,36), helmMat, 0,1.75,0); helmet.scale.set(1,1.04,1.06);
+const visor = put(new THREE.SphereGeometry(.168,56,28,Math.PI/2-1.0,2.0,.85,1.05), visorMat, 0,1.75,0); visor.scale.set(1,1.04,1.06);
+[[Math.PI/2-1.25,2.5,.62,.3],[Math.PI/2-1.1,2.2,1.82,.14]].forEach(([ps,pl,ts,tl])=>{      // visor housing / frame
+  const h = put(new THREE.SphereGeometry(.172,48,10,ps,pl,ts,tl), helmMat, 0,1.75,0); h.scale.set(1,1.04,1.06); h.material.side = THREE.DoubleSide;
+});
+[-1,1].forEach(s=>{
+  const c = put(new THREE.CylinderGeometry(.034,.034,.022,24), ringMat, .158*s,1.745,0); c.rotation.z = Math.PI/2;
+  const c2 = put(new THREE.CylinderGeometry(.02,.02,.026,16), darkMat, .162*s,1.745,0); c2.rotation.z = Math.PI/2;
+  const lamp = put(bevelBox(.032,.02,.03,.005), darkMat, .075*s,1.9,.065); lamp.rotation.x = -.5;
+  put(new THREE.BoxGeometry(.018,.009,.004), ledOnMat, .075*s,1.9,.082).rotation.x = -.5;
+});
+put(bevelBox(.07,.018,.03,.005), ringMat, 0,1.905,.058).rotation.x = -.45;
+
+/* ---- PLSS life-support backpack ---- */
+const plss = new THREE.Group(); plss.position.set(0,1.24,-.2); figure.add(plss);
+put(bevelBox(.31,.4,.03,.008), darkMat, 0,0,.055, plss);                                   // backplate
+put(bevelBox(.36,.38,.14,.02), packMat, 0,0,-.03, plss);                                   // main housing
+put(bevelBox(.3,.09,.12,.015), packMat, 0,.235,-.02, plss);                                // upper step
+put(bevelBox(.24,.03,.10,.01), ringMat, 0,.295,-.02, plss);                                // top cap
+put(bevelBox(.3,.06,.12,.015), packMat, 0,-.22,-.02, plss);                                // lower step
+[-1,1].forEach(s=>{
+  put(new THREE.CylinderGeometry(.034,.034,.3,20), packMat, .205*s,0,-.06, plss);          // side tanks
+  [.15,-.15].forEach(y=>put(new THREE.SphereGeometry(.034,20,10), packMat, .205*s,y,-.06, plss).scale.set(1,.6,1));
+  [.07,-.07].forEach(y=>put(new THREE.TorusGeometry(.036,.005,8,20), ringMat, .205*s,y,-.06, plss).rotation.x = Math.PI/2);
+  put(new THREE.CylinderGeometry(.02,.02,.04,14), ringMat, .08*s,-.27,-.04, plss);        // bottom nozzles
+  [[.12,.16],[.12,-.16]].forEach(([x,y])=>put(new THREE.CylinderGeometry(.008,.008,.012,10), ringMat, x*s,y,-.104, plss).rotation.x = Math.PI/2); // bolts
+});
+put(bevelBox(.2,.12,.012,.004), darkMat, 0,.04,-.104, plss);                               // control panel
+[-.06,-.02,.02,.06].forEach((x,i)=>put(new THREE.BoxGeometry(.016,.01,.004), i===2?ledAmbMat:ledOnMat, x,.07,-.112, plss));
+[-.05,0,.05].forEach(x=>put(new THREE.CylinderGeometry(.008,.008,.014,10), ringMat, x,.02,-.112, plss).rotation.x = Math.PI/2);
+for (let k=0;k<5;k++) put(new THREE.BoxGeometry(.22,.007,.006), darkMat, 0,-.1-k*.016,-.1, plss);   // vent grille
+put(new THREE.CylinderGeometry(.004,.004,.22,6), ringMat, .12,.4,-.04, plss);              // antenna
+put(new THREE.SphereGeometry(.007,10,8), ringMat, .12,.51,-.04, plss);
+
+/* hex texture */
+function hexTexture(){
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0,0,256,256);
+  g.strokeStyle = '#fff'; g.lineWidth = 3;
+  const R = 18, w = Math.sqrt(3)*R;
+  for (let row=-1; row<12; row++) for (let col=-1; col<10; col++){
+    const cx = col*w + (row%2 ? w/2 : 0), cy = row*R*1.5;
+    g.beginPath();
+    for (let k=0;k<6;k++){ const a = Math.PI/3*k + Math.PI/6; const x=cx+R*.9*Math.cos(a), y=cy+R*.9*Math.sin(a); k?g.lineTo(x,y):g.moveTo(x,y); }
+    g.closePath(); g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7,1.4); return t;
+}
+const HEX = hexTexture();
+
+const vest = new THREE.Group(); vest.scale.z = Z_SCALE; figure.add(vest);
+const zoneMeshes = [], nodeLeds = [], crackSets = [];
+ZONES.forEach((z,i)=>{
+  const pts = [];
+  for (let k=0;k<=14;k++){ const y = z.y0+(z.y1-z.y0)*k/14; pts.push(new THREE.Vector2(profileR(y)+.026, y)); }
+  const mat = new THREE.MeshStandardMaterial({color:0x3A2A1E, metalness:.55, roughness:.38, emissive:new THREE.Color(STATUS[0].hex), emissiveMap:HEX, emissiveIntensity:.5, side:THREE.DoubleSide, transparent:true});
+  const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 64), mat);
+  m.userData.zone = i; vest.add(m); zoneMeshes.push(m);
+  const ym = (z.y0+z.y1)/2, r = profileR(ym)+.032;
+  const node = new THREE.Mesh(new THREE.BoxGeometry(.05,.035,.012), new THREE.MeshStandardMaterial({color:0x22303f, metalness:.6, roughness:.3}));
+  node.position.set(.06, ym, r*Z_SCALE+.006); figure.add(node);
+  const led = new THREE.Mesh(new THREE.SphereGeometry(.007,10,8), new THREE.MeshBasicMaterial({color:STATUS[0].hex}));
+  led.position.set(.075, ym, r*Z_SCALE+.014); figure.add(led); nodeLeds.push(led);
+  crackSets.push([]);
+});
+const core = new THREE.Mesh(new THREE.BoxGeometry(.075,.05,.018), new THREE.MeshStandardMaterial({color:0x14202c, metalness:.7, roughness:.25}));
+core.position.set(-.09, 1.36, (profileR(1.36)+.034)*Z_SCALE); figure.add(core);
+const coreLed = new THREE.Mesh(new THREE.BoxGeometry(.05,.006,.004), new THREE.MeshBasicMaterial({color:0x7EE0C9}));
+coreLed.position.copy(core.position).add(new THREE.Vector3(0,.012,.011)); figure.add(coreLed);
+
+/* organs: sculpted anatomical forms, colour-coded per zone status */
+const organs = new THREE.Group(); organs.visible = false; organs.renderOrder = -10; figure.add(organs);
+function mkOrganMat(){
+  const m = new THREE.MeshStandardMaterial({color:STATUS[0].hex, emissive:STATUS[0].hex, roughness:.42, metalness:.02, transparent:true, opacity:0});
+  m.emissive.multiplyScalar(.28);
+  m.onBeforeCompile = sh=>{
+    sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+      'float orim = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 2.4);\n' +
+      'gl_FragColor.rgb += diffuse * orim * 0.9 + vec3(0.06) * orim;\n#include <dithering_fragment>');
+  };
+  return m;
+}
+const organMats = ZONES.map(()=>mkOrganMat());
+const tissueMat = new THREE.MeshStandardMaterial({color:0xB7CBDD, roughness:.5, transparent:true, opacity:0});
+
+function weldNormals(g){
+  g.computeVertexNormals();
+  const p = g.attributes.position, n = g.attributes.normal, map = new Map();
+  for (let i=0;i<p.count;i++){
+    const k = Math.round(p.getX(i)*1e4)+','+Math.round(p.getY(i)*1e4)+','+Math.round(p.getZ(i)*1e4);
+    const a = map.get(k); if (a) a.push(i); else map.set(k,[i]);
+  }
+  map.forEach(ids=>{
+    if (ids.length < 2) return; let x=0,y=0,z=0;
+    ids.forEach(i=>{ x+=n.getX(i); y+=n.getY(i); z+=n.getZ(i); });
+    const l = Math.hypot(x,y,z) || 1; ids.forEach(i=>n.setXYZ(i,x/l,y/l,z/l));
+  });
+  n.needsUpdate = true; return g;
+}
+function blob(sx, sy, sz, fn){
+  const g = new THREE.SphereGeometry(1, 40, 28), p = g.attributes.position, v = new THREE.Vector3();
+  for (let i=0;i<p.count;i++){ v.fromBufferAttribute(p,i); if (fn) fn(v); p.setXYZ(i, v.x*sx, v.y*sy, v.z*sz); }
+  return weldNormals(g);
+}
+/* tube along a smooth path; radFn(t) scales the radius along its length */
+function tubeVar(pts, closed, segs, radial, radius, radFn){
+  const curve = new THREE.CatmullRomCurve3(pts.map(a=>new THREE.Vector3(a[0],a[1],a[2])), closed);
+  const g = new THREE.TubeGeometry(curve, segs, radius, radial, closed), p = g.attributes.position, c = new THREE.Vector3(), v = new THREE.Vector3();
+  if (radFn) for (let i=0;i<=segs;i++){
+    curve.getPointAt(i/segs, c); const f = radFn(i/segs);
+    for (let j=0;j<=radial;j++){ const idx = i*(radial+1)+j; v.fromBufferAttribute(p,idx).sub(c).multiplyScalar(f).add(c); p.setXYZ(idx, v.x, v.y, v.z); }
+  }
+  return weldNormals(g);
+}
+function oput(geo, zi, x, y, z, rx, ry, rz, parent){
+  const m = new THREE.Mesh(geo, zi < 0 ? tissueMat : organMats[zi]);
+  m.position.set(x,y,z); m.rotation.set(rx||0, ry||0, rz||0); (parent||organs).add(m); return m;
+}
+
+/* 1. neck: bilobed thyroid wrapped around the trachea */
+oput(new THREE.CylinderGeometry(.011,.011,.15,16), -1, 0,1.535,.004);
+for (let k=0;k<7;k++) oput(new THREE.TorusGeometry(.0118,.0022,6,16), -1, 0,1.47+k*.02,.004, Math.PI/2,0,0);
+[-1,1].forEach(s=>{
+  oput(blob(.016,.03,.013, v=>{ if (v.y>0){ const k = 1-.5*v.y; v.x*=k; v.z*=k; } v.x += s*.12*(1-Math.abs(v.y)); }), 0, .024*s,1.51,.026, 0,0,-.28*s);
+});
+oput(blob(.026,.007,.008, null), 0, 0,1.494,.03);                                          // isthmus
+oput(blob(.007,.012,.006, null), 0, 0,1.54,.03);                                           // pyramidal lobe
+
+/* 2. chest: lungs (cardiac notch on the left), tilted heart, great vessels */
+function lungGeo(s){
+  return blob(.062,.105,.07, v=>{
+    const lat = v.x*s;
+    if (lat < 0) v.x *= .55;                                                              // flat medial surface
+    if (v.y > 0){ const k = 1-.38*v.y*v.y; v.x*=k; v.z*=k; }                              // narrow apex
+    if (v.y < 0){ v.y *= .88; const q = 1+.12*(-v.y); v.x*=q; v.z*=q; }                   // broad base
+    if (v.y < -.4) v.y += .09*(1-(v.x*v.x+v.z*v.z))*Math.min(1,(-v.y-.4)/.4);             // concave diaphragm surface
+    let f = 1-.05*Math.exp(-Math.pow((v.y*.9+v.z*.6-.05)/.07,2));                         // oblique fissure
+    if (s < 0) f -= .05*Math.exp(-Math.pow((v.y*.2+v.z*.9-.25)/.06,2));                   // right horizontal fissure
+    v.x*=f; v.y*=f; v.z*=f;
+    if (s > 0){                                                                           // cardiac notch, left lung only
+      const g = Math.exp(-Math.pow((v.y+.25)/.33,2))*Math.max(0,v.z)*Math.max(0,-lat);
+      v.x += s*.9*g; v.z *= (1-.45*g);
+    }
+  });
+}
+[-1,1].forEach(s=>oput(lungGeo(s), 1, .095*s,1.345,-.01));
+const heartGroup = new THREE.Group(); heartGroup.position.set(.032,1.315,.035); heartGroup.rotation.z = .6; organs.add(heartGroup);
+oput(blob(.046,.064,.042, v=>{
+  if (v.y < 0){ const k = 1+.55*v.y; v.x*=k; v.z*=k; }                                    // pointed apex
+  const gv = Math.exp(-Math.pow((v.y-.3)/.1,2)); v.x*=1-.07*gv; v.z*=1-.07*gv;            // AV groove
+  v.z += .1*Math.max(0,v.x)*(1-Math.abs(v.y));                                            // bulging right ventricle
+}), 1, 0,0,0, 0,0,0, heartGroup);
+oput(blob(.026,.026,.024, null), 1, -.026,.056,-.004, 0,0,0, heartGroup);                  // right atrium
+oput(blob(.02,.016,.018, null), 1, .03,.054,.014, 0,0,0, heartGroup);                      // left atrial appendage
+oput(tubeVar([[.008,1.345,.025],[.006,1.385,.022],[.012,1.415,.0],[.04,1.425,-.025],[.06,1.405,-.04],[.062,1.365,-.045],[.06,1.30,-.045]], false, 48, 12, .011), 1, 0,0,0);   // aortic arch
+oput(tubeVar([[0,1.35,.04],[.02,1.395,.036],[.045,1.412,.016]], false, 24, 10, .009), 1, 0,0,0);                    // pulmonary trunk
+oput(tubeVar([[-.03,1.33,0],[-.03,1.38,0],[-.028,1.435,0]], false, 16, 10, .008), 1, 0,0,0);                         // superior vena cava
+
+/* 3. abdomen: wedge liver, J-shaped stomach, framed colon, coiled small bowel */
+oput(blob(.082,.042,.058, v=>{
+  if (v.x > 0){ v.y *= 1-.7*v.x; v.z *= 1-.35*v.x; }
+  if (v.y < 0) v.y *= .55;
+  v.y *= 1-.1*Math.exp(-Math.pow((v.x-.3)/.08,2));
+}), 2, -.062,1.195,.025, 0,0,.08);
+oput(blob(.012,.018,.01, null), 2, -.1,1.16,.045);                                          // gallbladder
+oput(tubeVar([[.058,1.208,.03],[.083,1.196,.034],[.097,1.17,.036],[.092,1.14,.036],[.072,1.122,.034],[.046,1.118,.032],[.026,1.128,.03],[.013,1.148,.026]],
+  false, 60, 14, 1, t=>.010+.018*Math.pow(Math.sin(Math.PI*Math.min(1,t*.95+.02)),.8)), 2, 0,0,0);   // stomach
+oput(tubeVar([[-.09,1.075,.03],[-.095,1.10,.03],[-.095,1.14,.03],[-.085,1.16,.032],[-.05,1.145,.04],[-.02,1.108,.045],[.02,1.108,.045],[.05,1.145,.04],
+  [.088,1.16,.032],[.098,1.14,.03],[.098,1.10,.03],[.09,1.075,.03],[.07,1.065,.035],[.04,1.07,.04],[.02,1.056,.04],[0,1.07,.04]],
+  false, 220, 12, 1, t=>.0105+.0028*Math.sin(t*80)), 2, 0,0,0);                                // colon with haustra
+(function(){
+  const pts = [];
+  for (let i=0;i<48;i++){ const a = i*.62; pts.push([.05*Math.sin(a)*(.6+.4*Math.cos(i*.21)), 1.098+.026*Math.sin(i*.37+.5)+.008*Math.sin(i*1.3), .005+.02*Math.cos(a*.8)]); }
+  oput(tubeVar(pts, false, 240, 10, .0075), 2, 0,0,0);                                      // coiled small bowel
+})();
+
+/* 4. pelvis and spine: segmented vertebral column and pelvic girdle */
+const spineZ = [[1.60,-.010],[1.52,-.026],[1.46,-.060],[1.40,-.088],[1.32,-.098],[1.26,-.092],[1.20,-.078],[1.12,-.064],[1.04,-.075],[.95,-.100]];
+function spineAt(y){
+  if (y >= spineZ[0][0]) return spineZ[0][1];
+  for (let i=1;i<spineZ.length;i++){ const [y1,z1] = spineZ[i], [y0,z0] = spineZ[i-1]; if (y >= y1) return z1+(z0-z1)*(y-y1)/(y0-y1); }
+  return spineZ[spineZ.length-1][1];
+}
+const spineParts = [], _m4 = new THREE.Matrix4(), _qq = new THREE.Quaternion(), _ee = new THREE.Euler(), _ss = new THREE.Vector3(), _pp = new THREE.Vector3();
+function part(geo, x, y, z, rx, sx, sy, sz){
+  _ee.set(rx||0,0,0); _qq.setFromEuler(_ee); _pp.set(x,y,z); _ss.set(sx||1,sy||1,sz||1); _m4.compose(_pp,_qq,_ss);
+  geo.applyMatrix4(_m4); spineParts.push(geo.index ? geo.toNonIndexed() : geo);
+}
+function vertebra(y, rb, hb, sp, tw, tilt){
+  const z = spineAt(y);
+  part(new THREE.CylinderGeometry(rb, rb*1.08, hb, 14), 0,y,z, 0, 1.25,1,.95);                 // body
+  part(new THREE.BoxGeometry(rb*1.1, hb*.55, rb*.5), 0,y+hb*.05,z-rb*1.0, 0, 1,1,1);           // neural arch
+  part(new THREE.BoxGeometry(rb*.38, hb*.8, sp), 0,y-hb*.05,z-rb*1.05-sp*.5, tilt, 1,1,1);     // spinous process
+  part(new THREE.BoxGeometry(tw, hb*.3, rb*.45), 0,y+hb*.1,z-rb*.8, 0, 1,1,1);                 // transverse processes
+}
+for (let i=0;i<7;i++)  vertebra(1.595-i*.0145, .011, .009, .014, .04, .2);                     // cervical
+for (let i=0;i<12;i++) vertebra(1.48-i*.0195, .016, .0145, .022, .06, .45);                    // thoracic
+for (let i=0;i<5;i++)  vertebra(1.24-i*.036, .021, .026, .02, .075, 0);                        // lumbar
+(function(){
+  const g = new THREE.BufferGeometry(); let n = 0; spineParts.forEach(p=>n += p.attributes.position.count);
+  const pos = new Float32Array(n*3), nor = new Float32Array(n*3); let o = 0;
+  spineParts.forEach(p=>{ pos.set(p.attributes.position.array, o); nor.set(p.attributes.normal.array, o); o += p.attributes.position.count*3; });
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3)); g.setAttribute('normal', new THREE.BufferAttribute(nor,3));
+  organs.add(new THREE.Mesh(g, organMats[3]));
+})();
+oput(blob(.045,.07,.03, v=>{ if (v.y < 0){ const k = 1+.7*v.y; v.x*=k; v.z*=k; } }), 3, 0,1.02,-.088, -.25,0,0);   // sacrum
+oput(blob(.012,.02,.01, null), 3, 0,.93,-.108);                                             // coccyx
+[-1,1].forEach(s=>{
+  oput(blob(.014,.055,.065, v=>{ if (v.y < 0){ const k = 1+.45*v.y; v.z*=k; } }), 3, .09*s,.995,-.005, 0,-s*.6,s*.25);   // iliac wing
+  oput(blob(.026,.026,.026, null), 3, .088*s,.912,0);                                       // femoral head / acetabulum
+  oput(blob(.03,.008,.01, null), 3, .03*s,.925,.052, 0,0,-s*.35);                           // pubic ramus
+});
+oput(blob(.015,.015,.012, null), 3, 0,.92,.058);                                            // pubic symphysis
+const pelvRing = oput(new THREE.TorusGeometry(.07,.011,12,36), 3, 0,.96,.005, Math.PI/2-.35,0,0); pelvRing.scale.set(1.2,.85,1);   // pelvic inlet ring
+
+/* X-ray transition: suit fades to a cool shell while organs fade in */
+const XR_TINT = new THREE.Color(0x7fc2ea), XR_EMIT = new THREE.Color(0x07324d);
+let xrayK = 0, xrayTarget = 0, _lt = 0;
+function applyXray(){
+  const k = xrayK;
+  xrayMats.forEach(m=>{
+    m.opacity = 1 + (m.userData.xrOp - 1)*k; m.depthWrite = k < .05; m.userData.xr.value = k;
+    m.color.copy(m.userData.c0).lerp(XR_TINT, .7*k); m.emissive.copy(m.userData.e0).lerp(XR_EMIT, k);
+  });
+  organMats.forEach(m=>{ m.opacity = k; }); tissueMat.opacity = k; organs.visible = k > .01;
+}
+setXray($('xrayToggle').checked); xrayK = xrayTarget; applyXray();
+
+/* particles */
+const POOL = reduceMotion ? 120 : 420;
+const pPos = new Float32Array(POOL*6), pCol = new Float32Array(POOL*6);
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+pGeo.setAttribute('color', new THREE.BufferAttribute(pCol,3));
+const pLines = new THREE.LineSegments(pGeo, new THREE.LineBasicMaterial({vertexColors:true, transparent:true, opacity:.95, blending:THREE.AdditiveBlending, depthWrite:false}));
+pLines.frustumCulled = false; scene.add(pLines);
+const parts = Array.from({length:POOL}, ()=>({on:false, p:new THREE.Vector3(), d:new THREE.Vector3(), left:0, type:'gcr', zone:0, hitPt:new THREE.Vector3(), n:new THREE.Vector3(), meteor:false}));
+const freeList = [];                       // قائمة الفتحات الفارغة بدل البحث الخطي
+function resetParticles(){
+  freeList.length = 0;
+  for (let i=POOL-1;i>=0;i--){ parts[i].on = false; freeList.push(i); }
+  pPos.fill(-999); pCol.fill(0);
+}
+resetParticles();
+
+function surfacePoint(zi, out, nOut){
+  const z = ZONES[zi], y = z.y0 + Math.random()*(z.y1-z.y0), th = Math.random()*Math.PI*2, r = profileR(y)+.03;
+  out.set(r*Math.sin(th), y, r*Math.cos(th)*Z_SCALE);
+  nOut.set(Math.sin(th), 0, Math.cos(th)/Z_SCALE).normalize();
+}
+const _u = new THREE.Vector3();
+function spawn(type, fromSun, meteor, zoneForce){
+  if (!freeList.length) return;
+  const pt = parts[freeList.pop()];
+  let zi = zoneForce;
+  if (zi === undefined){ const r = Math.random(); zi = r<.12?0 : r<.48?1 : r<.76?2 : 3; }
+  surfacePoint(zi, pt.hitPt, pt.n);
+  if (fromSun){ _u.copy(sunDir).add(randDir().multiplyScalar(.35)).normalize(); if (_u.dot(pt.n) < .1){ surfacePoint(zi, pt.hitPt, pt.n); pt.n.copy(sunDir).setY(0).normalize(); } }
+  else { _u.copy(randDir()); if (_u.dot(pt.n) < .25) _u.add(pt.n.clone().multiplyScalar(1.3)).normalize(); }
+  const dist = meteor ? 7 : 6 + Math.random()*3;
+  pt.p.copy(pt.hitPt).addScaledVector(_u, dist);
+  pt.d.copy(_u).negate();
+  pt.left = dist; pt.type = type; pt.zone = zi; pt.on = true; pt.meteor = !!meteor;
+}
+
+function radialTex(){ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'); const gr=g.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.3,'rgba(255,255,255,.55)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); }
+const FLASH_TEX = radialTex();
+const flashes = Array.from({length:60}, ()=>{ const s = new THREE.Sprite(new THREE.SpriteMaterial({map:FLASH_TEX, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0})); s.visible=false; scene.add(s); return {s, t:1, size:.1}; });
+let flashIdx = 0;
+function flash(pos, hex, size){ const f = flashes[flashIdx++ % flashes.length]; f.s.position.copy(pos); f.s.material.color.setHex(hex); f.t = 0; f.size = size; f.s.visible = true; }
+
+const crackGeo = new THREE.CircleGeometry(1, 7);
+function clearCracks(zi){
+  crackSets[zi].forEach(m=>{ figure.remove(m); m.material.dispose(); });
+  crackSets[zi] = [];
+}
+function addCracks(zi){
+  clearCracks(zi);
+  const p = new THREE.Vector3(), n = new THREE.Vector3();
+  surfacePoint(zi, p, n);
+  for (let k=0;k<6;k++){
+    const m = new THREE.Mesh(crackGeo, new THREE.MeshBasicMaterial({color:0x090909, transparent:true, opacity:.9, depthWrite:false}));
+    const q = p.clone().add(new THREE.Vector3((Math.random()-.5)*.07,(Math.random()-.5)*.06,0)).addScaledVector(n,.006 + k*.0004);
+    m.position.copy(q); m.lookAt(q.clone().add(n)); m.scale.setScalar(.008+Math.random()*.016);
+    figure.add(m); crackSets[zi].push(m);
+  }
+  return p;
+}
+
+const tags = ZONES.map((z,i)=>{ const d = document.createElement('div'); d.className='tag'; stage.appendChild(d); return d; });
+const tagCache = ZONES.map(()=>'');
+const tagAnchors = ZONES.map(z=>{ const y=(z.y0+z.y1)/2; return new THREE.Vector3(profileR(y)+.05, y, 0); });
+
+/* ---------------- UI build ---------------- */
+const envSeg = $('envSeg');
+Object.entries(ENVS).forEach(([k,e])=>{
+  const b = document.createElement('button'); b.dataset.env = k;
+  b.innerHTML = `${e.name}<small><span class="ar" lang="ar">${e.ar}</span></small>`;
+  b.addEventListener('click', ()=>setEnv(k)); envSeg.appendChild(b);
+});
+function setEnv(k){
+  S.env = k;
+  [...envSeg.children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.env===k));
+  $('envNote').textContent = ENVS[k].note; $('hudEnv').textContent = ENVS[k].name;
+  applyBody(); log(`Environment set to ${ENVS[k].name}`, 'g');
+}
+const zoneList = $('zoneList');
+const zoneEls = ZONES.map((z,i)=>{
+  const b = document.createElement('button'); b.className='zone'; b.setAttribute('aria-pressed','false');
+  b.innerHTML = `<span class="nm">${z.name}<span class="ar" lang="ar">${z.ar}</span></span><span class="st"><span class="dot"></span><span class="stl">Nominal</span></span>
+  <span class="sub">${z.organs}</span><span class="num"><span class="rt">0.00</span> mSv/day</span>
+  <span class="sub">Total <span class="cm">0.00</span> mSv</span><span class="num sub">Integrity <span class="ig">100</span>%</span>
+  <span class="bar"><i></i></span>`;
+  b.addEventListener('click', ()=>selectZone(i)); zoneList.appendChild(b);
+  return {el:b, dot:b.querySelector('.dot'), stl:b.querySelector('.stl'), rt:b.querySelector('.rt'), cm:b.querySelector('.cm'), ig:b.querySelector('.ig'), bar:b.querySelector('.bar i')};
+});
+function selectZone(i){
+  S.sel = i;
+  zoneEls.forEach((z,k)=>{ z.el.classList.toggle('sel', k===i); z.el.setAttribute('aria-pressed', k===i); });
+}
+
+const clsEl = $('cls'), clsRows = {};
+[['gcr','Cosmic rays','#9B7BFF'],['proton','Solar protons','#FFB23E'],['electron','Trapped electrons','#46D6E8'],['bg','Background','#8FA2B6']].forEach(([k,l,c])=>{
+  const a = document.createElement('span'); a.textContent = l;
+  const b = document.createElement('span'); b.className='bar'; b.innerHTML = `<i style="background:${c}"></i>`;
+  const n = document.createElement('span'); n.style.textAlign='right';
+  clsEl.append(a,b,n); clsRows[k] = {bar:b.firstChild, n};
+});
+
+$('btnStorm').addEventListener('click', ()=>{
+  S.storm = {t0:S.simMin}; S.stormAlerted = false; S.peakAlerted = false;
+  log('Solar flare erupted. Particles inbound.', 'w');
+});
+$('btnHit').addEventListener('click', ()=>{ spawn('gcr', false, true, S.sel); });
+$('btnEclipse').addEventListener('click', e=>{
+  S.eclipse = !S.eclipse; e.currentTarget.setAttribute('aria-pressed', S.eclipse);
+  e.currentTarget.firstChild.textContent = S.eclipse ? 'Return to sunlight' : 'Enter shadow';
+  log(S.eclipse ? 'Entered shadow. Solar harvesting paused.' : 'Back in sunlight.', 'g');
+});
+$('shieldToggle').addEventListener('change', e=>{
+  S.shield = e.target.checked;
+  log(S.shield ? 'Perovskite layer active.' : 'Perovskite layer off. Comparing an unshielded suit.', S.shield?'g':'w');
+});
+$('speedSeg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return; S.speed = +b.dataset.s;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed', x===b));
+});
+function setPaused(on){
+  S.paused = on;
+  $('btnPause').setAttribute('aria-pressed', on);
+  $('btnPause').textContent = on ? 'Resume' : 'Pause';
+  $('pausedTag').classList.toggle('show', on);
+}
+$('btnPause').addEventListener('click', ()=>setPaused(!S.paused));
+$('xrayToggle').addEventListener('change', e=>setXray(e.target.checked));
+$('tagToggle').addEventListener('change', e=>stage.classList.toggle('notags', !e.target.checked));
+$('rotToggle').addEventListener('change', e=>{ controls.autoRotate = e.target.checked; });
+$('btnReset').addEventListener('click', ()=>{
+  S = freshState(S);
+  $('shieldToggle').checked = true;
+  $('btnEclipse').setAttribute('aria-pressed', false);
+  $('btnEclipse').firstChild.textContent='Enter shadow';
+  setPaused(false);
+  /* تصفير كل ما قد يبقى من الجلسة السابقة */
+  crackSets.forEach((set,i)=>clearCracks(i));
+  resetParticles();
+  spawnAcc.gcr = spawnAcc.proton = spawnAcc.electron = 0;
+  lastStatus.fill(-1);
+  tagCache.fill('');
+  flashes.forEach(f=>{ f.t = 1; f.s.visible = false; });
+  for (const k in spec) spec[k].fill(0);
+  $('log').innerHTML=''; hideAlert(); selectZone(S.sel); applyBody(); log('Mission reset.', 'g');
+});
+const dlg = $('stackDlg');
+$('btnStack').addEventListener('click', ()=>dlg.showModal ? dlg.showModal() : dlg.setAttribute('open',''));
+$('stackX').addEventListener('click', ()=>dlg.close ? dlg.close() : dlg.removeAttribute('open'));
+(function buildStack(){
+  const L = [['Outer protective film','0.15 mm',.15,'#5A6B7D'],['Perovskite absorber, self-healing','1.20 mm',1.2,'#9A6A1E'],['CZT detector and flex circuit','0.50 mm',.5,'#2E5E8C'],['Energy-harvesting electrodes','0.30 mm',.3,'#0F7C74'],['Comfort liner','0.30 mm',.3,'#7A8794']];
+  const v = $('stackViz');
+  L.forEach(([n,t,mm,c])=>{ const d = document.createElement('div'); d.className='layer'; d.style.background=c; d.style.height = Math.max(26, mm*58)+'px'; d.innerHTML = `<span>${n}</span><span>${t}</span>`; v.appendChild(d); });
+})();
+function setXray(on){ xrayTarget = on ? 1 : 0; }
+
+/* alerts and log */
+const alertEl = $('alert');
+function showAlert(kind, title, body, ar){
+  alertEl.className = 'alert show ' + (kind||''); $('alertTitle').textContent = title; $('alertBody').textContent = body; $('alertAr').textContent = ar || '';
+  S.alertActive = true;
+}
+function hideAlert(){ alertEl.className = 'alert'; S.alertActive = false; }
+$('alertX').addEventListener('click', hideAlert);
+function fmtT(min){ const d = Math.floor(min/1440), h = Math.floor(min%1440/60), m = Math.floor(min%60); return `${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+function log(msg, cls){
+  const li = document.createElement('li');
+  li.innerHTML = `<time>${fmtT(S.simMin).replace(/^0d /,'')}</time><span class="${cls||''}"></span>`;
+  li.lastChild.textContent = msg; const ul = $('log'); ul.prepend(li);
+  while (ul.children.length > 40) ul.lastChild.remove();
+}
+
+/* picking */
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e=>{ downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e=>{
+  if (!downAt || Math.hypot(e.clientX-downAt[0], e.clientY-downAt[1]) > 6) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  mouse.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(zoneMeshes)[0];
+  if (hit) selectZone(hit.object.userData.zone);
+});
+
+/* resize */
+function resize(){
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w/h;
+  camera.position.setLength(w < 520 ? 5.0 : 4.7); camera.updateProjectionMatrix();
+}
+if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+resize();
+
+/* spectrum */
+const NB = 44, spec = {gcr:new Float32Array(NB), proton:new Float32Array(NB), electron:new Float32Array(NB), bg:new Float32Array(NB)};
+function addSpec(type){
+  let keV;
+  if (type==='electron') keV = Math.pow(10, 1.5 + Math.random()*1.5);
+  else if (type==='proton') keV = Math.pow(10, 2.5 + Math.random()*1.2 + (Math.random()-.5)*.3);
+  else if (type==='gcr') keV = Math.pow(10, 3.2 + Math.random()*.8);
+  else keV = Math.random() < .35 ? 511*(1+(Math.random()-.5)*.04) : Math.pow(10, 1 + Math.random()*2.2);
+  const b = Math.max(0, Math.min(NB-1, Math.floor((Math.log10(keV)-1)/3*NB)));
+  spec[type][b] += 1;
+}
+const specCanvas = $('spec'), sctx = specCanvas.getContext('2d');
+const SPEC_COL = {bg:'#6E8195', electron:'#46D6E8', proton:'#FFB23E', gcr:'#9B7BFF'};
+
+/* ألوان مخزّنة مؤقتًا: تُحدَّث فقط عند تغيير ثيم النظام */
+const themeCol = {muted:'#888', rad:'#C8284B', teal:'#0F7C74'};
+function refreshTheme(){
+  const cs = getComputedStyle(document.documentElement);
+  themeCol.muted = cs.getPropertyValue('--muted').trim() || '#888';
+  themeCol.rad = cs.getPropertyValue('--rad').trim() || '#C8284B';
+  themeCol.teal = cs.getPropertyValue('--teal').trim() || '#0F7C74';
+}
+refreshTheme();
+const darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+if (darkMQ.addEventListener) darkMQ.addEventListener('change', refreshTheme);
+
+function drawSpec(){
+  const dpr = Math.min(window.devicePixelRatio||1, 2), W = specCanvas.clientWidth, H = specCanvas.clientHeight;
+  if (specCanvas.width !== W*dpr){ specCanvas.width = W*dpr; specCanvas.height = H*dpr; }
+  sctx.setTransform(dpr,0,0,dpr,0,0); sctx.clearRect(0,0,W,H);
+  let max = 4; for (let i=0;i<NB;i++) max = Math.max(max, spec.gcr[i]+spec.proton[i]+spec.electron[i]+spec.bg[i]);
+  const bw = W/NB, axisH = 14, plotH = H-axisH;
+  for (let i=0;i<NB;i++){
+    let y = plotH;
+    for (const k of ['bg','electron','proton','gcr']){
+      const h = Math.sqrt(spec[k][i]/max)*(plotH-4); if (h<.3) continue;
+      sctx.fillStyle = SPEC_COL[k]; sctx.fillRect(i*bw+.5, y-h, bw-1, h); y -= h;
+    }
+  }
+  sctx.fillStyle = themeCol.muted;
+  sctx.font = '10px "IBM Plex Sans", sans-serif';
+  [['10 keV',0],['100 keV',1/3],['1 MeV',2/3],['10 MeV',1]].forEach(([t,f])=>{ const x = f*W; sctx.textAlign = f===0?'left':f===1?'right':'center'; sctx.fillText(t, x, H-2); });
+}
+
+function spark(canvas, series, colors, minMax){
+  const dpr = Math.min(window.devicePixelRatio||1, 2), W = canvas.clientWidth, H = canvas.clientHeight; if (!W) return;
+  if (canvas.width !== W*dpr){ canvas.width = W*dpr; canvas.height = H*dpr; }
+  const c = canvas.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  let lo = Infinity, hi = -Infinity; series.forEach(s=>s.forEach(v=>{ lo=Math.min(lo,v); hi=Math.max(hi,v); }));
+  if (minMax){ lo = Math.min(lo, minMax[0]); hi = Math.max(hi, minMax[1]); }
+  if (!isFinite(lo)) return; if (hi-lo < 1e-6) hi = lo+1;
+  series.forEach((s,k)=>{
+    if (s.length<2) return; c.beginPath(); c.lineWidth = 1.6; c.strokeStyle = colors[k];
+    const denom = Math.max(1, s.length-1);
+    s.forEach((v,i)=>{ const x = i/denom*W, y = H-3-(v-lo)/(hi-lo)*(H-6); i?c.lineTo(x,y):c.moveTo(x,y); }); c.stroke();
+  });
+}
+
+/* ---------------- simulation step ---------------- */
+let spawnAcc = {gcr:0, proton:0, electron:0}, last = performance.now(), uiAcc = 0, inferAcc = 0, histAcc = 0;
+function stormLevel(){
+  if (!S.storm) return 0;
+  const t = S.simMin - S.storm.t0;
+  const lv = t < 60 ? t/60 : Math.exp(-(t-60)/240);
+  if (t > 60 && lv < .02){ S.storm = null; log('Solar storm over. Levels back to normal.', 'g'); hideAlert(); return 0; }
+  return lv;
+}
+
+function step(dt){
+  const env = ENVS[S.env];
+  const dMin = dt * S.speed;
+  S.simMin += dMin;
+
+  let sunF = env.sun === 'orbit' ? (Math.sin(S.simMin/92*Math.PI*2) > -.45 ? 1 : 0) : env.sun;
+  if (S.eclipse) sunF = 0;
+  S.sunF += (sunF - S.sunF) * Math.min(1, dt*3);
+  sun.intensity = .25 + 1.2*S.sunF;
+
+  const st = stormLevel();
+  const noise = 1 + (Math.random()-.5)*.06;
+  const rates = {
+    gcr: env.base*env.mix.gcr*noise,
+    proton: env.base*env.mix.proton*noise + st*STORM_PEAK_RATE,
+    electron: env.base*env.mix.electron*noise
+  };
+  let sumRate=0, sumRaw=0, worst=0;
+  S.zones.forEach((zs,i)=>{
+    const z = ZONES[i]; let r = 0, raw = 0;
+    for (const t in rates){ raw += rates[t]; r += rates[t] * (1 - (S.shield ? TYPES[t].atten*zs.integ : 0)); }
+    zs.rate = r*z.weight; zs.raw = raw*z.weight;
+    zs.cum += zs.rate * dMin/1440; zs.rawCum += zs.raw * dMin/1440;
+    zs.status = statusOf(zs.rate); worst = Math.max(worst, zs.status);
+    sumRate += zs.rate; sumRaw += zs.raw;
+    if (zs.integ < 1){
+      zs.integ = Math.min(1, zs.integ + (.45/180)*dMin);
+      const op = (1-zs.integ)/.45; crackSets[i].forEach(m=>m.material.opacity = .9*op);
+      if (zs.integ >= 1){ clearCracks(i); log(`${z.name}: self-healing complete, protection restored.`, 'g'); }
+    }
+  });
+  S.avgRate = sumRate/4; S.avgRaw = sumRaw/4; S.worst = worst;
+
+  if (S.storm && !S.stormAlerted && st > .06){
+    S.stormAlerted = true;
+    const lat = (2.4 + Math.random()*1.6).toFixed(1);
+    showAlert('amber', 'Solar particle event detected', `Proton flux rising. Peak expected in about ${Math.max(5, Math.round(60-(S.simMin-S.storm.t0)))} min. Move to the storm shelter. Detected on the suit in ${lat} ms.`, 'تم رصد عاصفة شمسية — توجّه إلى الملجأ');
+    log(`TinyML flagged solar storm onset (${lat} ms inference).`, 'w');
+  }
+  if (S.storm && !S.peakAlerted && worst >= 2 && st > .7){
+    S.peakAlerted = true;
+    const z = S.zones.reduce((a,b,i)=>b.rate>S.zones[a].rate?i:a, 0);
+    showAlert('', `${STATUS[worst].label} exposure at ${ZONES[z].name.toLowerCase()}`, `${S.zones[z].rate.toFixed(1)} mSv/day at the skin. ${S.shield ? 'Shield is absorbing about ' + Math.round((1-S.zones[z].rate/S.zones[z].raw)*100) + '%.' : 'No perovskite layer: full exposure.'}`, 'إنذار جرعة إشعاعية مرتفعة');
+    log(`${ZONES[z].name}: ${STATUS[worst].label.toLowerCase()} dose rate, ${S.zones[z].rate.toFixed(1)} mSv/day.`, worst>=3?'c':'w');
+  }
+  if (worst !== S.lastWorst && !S.storm){ if (worst >= 2) log(`Exposure ${STATUS[worst].label.toLowerCase()} in ${ENVS[S.env].name}.`, 'w'); S.lastWorst = worst; }
+
+  const avgInteg = S.zones.reduce((a,z)=>a+z.integ,0)/4;
+  S.harvestSun = S.shield ? 140 * S.sunF * avgInteg : 0;
+  S.harvestRad = S.shield ? Math.min(60, 1.8 * (rates.gcr*TYPES.gcr.atten + rates.proton*TYPES.proton.atten + rates.electron*TYPES.electron.atten)) : 0;
+  const net = S.harvestSun + S.harvestRad - DRAW_MW;
+  S.batt = Math.max(0, Math.min(100, S.batt + net * (dMin/60) / BATT_MWH * 100));
+
+  const stressTarget = Math.min(1, worst/3 + (S.storm ? .25*st : 0) + (S.alertActive ? .15 : 0));
+  S.stress += (stressTarget - S.stress) * Math.min(1, dt*.6);
+  const n = () => (Math.random()-.5);
+  S.hr += ((70 + 30*S.stress + n()*3) - S.hr) * Math.min(1, dt*1.5);
+  S.spo2 = 98.2 - S.stress*1.3 + n()*.2;
+  S.temp += ((33.5 + .5*S.stress + n()*.05) - S.temp) * Math.min(1, dt*.5);
+  S.resp += ((13.5 + 7*S.stress + n()) - S.resp) * Math.min(1, dt);
+
+  const visBase = reduceMotion ? 6 : 22 + 14*Math.log10(1 + env.base*3);
+  const tot = rates.gcr + rates.proton + rates.electron;
+  for (const t in rates){
+    const share = rates[t]/tot;
+    let r = visBase * share * (t==='proton' && st>0 ? (1 + st*5) : 1);
+    spawnAcc[t] += r*dt;
+    while (spawnAcc[t] >= 1){ spawnAcc[t] -= 1; spawn(t, t==='proton' && st>0 && Math.random()<.8); }
+  }
+  // سقف لعدد أحداث الخلفية في الإطار الواحد
+  const bgCount = Math.min(20, Math.floor(dt*6 + Math.random()));
+  for (let k=0;k<bgCount;k++) addSpec('bg');
+}
+
+function moveParticles(dt){
+  const a = TYPES;
+  for (let i=0;i<POOL;i++){
+    const q = parts[i], o = i*6;
+    if (!q.on){
+      // تصفير الألوان للجسيمات المعطلة (تفادي الأشباح مع AdditiveBlending)
+      if (pCol[o] !== 0 || pCol[o+1] !== 0 || pCol[o+2] !== 0){
+        pCol[o]=pCol[o+1]=pCol[o+2]=pCol[o+3]=pCol[o+4]=pCol[o+5]=0;
+      }
+      continue;
+    }
+    const sp = q.meteor ? 16 : a[q.type].speed;
+    const mv = sp*dt; q.left -= mv; q.p.addScaledVector(q.d, mv);
+    if (q.left <= 0){
+      q.on = false; freeList.push(i);
+      pPos[o]=pPos[o+1]=pPos[o+2]=pPos[o+3]=pPos[o+4]=pPos[o+5]=-999;
+      pCol[o]=pCol[o+1]=pCol[o+2]=pCol[o+3]=pCol[o+4]=pCol[o+5]=0;
+      if (q.meteor){
+        const zi = q.zone, zs = S.zones[zi];
+        zs.integ = .55; const p = addCracks(zi);
+        flash(p, 0xffffff, .35); flash(p, 0xff3b5c, .22);
+        log(`Micrometeoroid strike on ${ZONES[zi].name.toLowerCase()}. Integrity 55%, self-healing started.`, 'c');
+        showAlert('teal', `Impact on ${ZONES[zi].name.toLowerCase()}`, 'Protection reduced to 55% in that zone. The perovskite layer is self-healing; full strength in about 3 simulated hours.', 'اصطدام نيزكي دقيق — بدأ التشافي الذاتي');
+        continue;
+      }
+      const zs = S.zones[q.zone];
+      const absorbed = S.shield && Math.random() < a[q.type].atten * zs.integ;
+      flash(q.hitPt, absorbed ? 0xFFD27A : 0xFF3B5C, absorbed ? .09 : .12);
+      S.hits[q.type] += 1; addSpec(q.type);
+      continue;
+    }
+    const L = q.meteor ? .9 : a[q.type].len, c = q.meteor ? METEOR_COL : a[q.type].color;
+    pPos[o]=q.p.x; pPos[o+1]=q.p.y; pPos[o+2]=q.p.z;
+    pPos[o+3]=q.p.x-q.d.x*L; pPos[o+4]=q.p.y-q.d.y*L; pPos[o+5]=q.p.z-q.d.z*L;
+    pCol[o]=c.r; pCol[o+1]=c.g; pCol[o+2]=c.b; pCol[o+3]=c.r*.06; pCol[o+4]=c.g*.06; pCol[o+5]=c.b*.06;
+  }
+  pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
+}
+
+const tmpCol = new THREE.Color(), healCol = new THREE.Color(0xE8AE45);
+const lastStatus = [-1,-1,-1,-1];
+function updateVisuals(t, dt){
+  const rdt = Math.min(.05, Math.max(0, t - _lt)); _lt = t;   /* X-ray fade runs on real time, even while paused */
+  if (Math.abs(xrayK - xrayTarget) > .001){
+    xrayK += (xrayTarget - xrayK) * Math.min(1, rdt*6);
+    if (Math.abs(xrayK - xrayTarget) < .004) xrayK = xrayTarget;
+    applyXray();
+  }
+  if (xrayK > .01){
+    const ph = t*S.hr/60*Math.PI*2;
+    heartGroup.scale.setScalar(1 + Math.pow(Math.max(0,Math.sin(ph)),8)*.06 + Math.pow(Math.max(0,Math.sin(ph*2+1.2)),10)*.02);
+  }
+  zoneMeshes.forEach((m,i)=>{
+    const zs = S.zones[i], sel = i === S.sel;
+    tmpCol.setHex(STATUS[zs.status].hex);
+    let inten = .3 + (zs.status>=2 ? .35*(.5+.5*Math.sin(t*6)) : 0) + (sel ? .35 : 0);
+    if (zs.integ < 1){ tmpCol.lerp(healCol, .5+.5*Math.sin(t*4)); inten += .3; }
+    m.material.emissive.copy(tmpCol); m.material.emissiveIntensity = S.shield ? inten : .12;
+    m.material.opacity = S.shield ? (1 - .65*xrayK) : .18;
+    m.material.depthWrite = S.shield && xrayK < .05;
+    m.material.color.setHex(S.shield ? 0x3A2A1E : 0x55606c);
+    nodeLeds[i].material.color.setHex(STATUS[zs.status].hex);
+    nodeLeds[i].visible = (Math.sin(t*(3+zs.status*3)+i) > -.3);
+    if (lastStatus[i] !== zs.status){ organMats[i].color.setHex(STATUS[zs.status].hex); organMats[i].emissive.setHex(STATUS[zs.status].hex).multiplyScalar(.28); lastStatus[i] = zs.status; }
+  });
+  coreLed.material.color.setHSL(.45, .7, .45 + .2*Math.sin(t*9));
+  HEX.offset.y = (HEX.offset.y + dt*.02) % 1;
+  flashes.forEach(f=>{ if (f.t>=1){ f.s.visible=false; return; } f.t += dt*2.6; const k = f.t; f.s.material.opacity = Math.max(0, 1-k); f.s.scale.setScalar(f.size*(.5+k*1.6)); });
+  bodyMesh.rotation.y += dt*.02;
+
+  const W = stage.clientWidth, H = stage.clientHeight;
+  tags.forEach((el,i)=>{
+    _tag.copy(tagAnchors[i]); figure.localToWorld(_tag); _tag.project(camera);
+    if (_tag.z > 1){ el.style.display='none'; return; } el.style.display='';
+    const x = (_tag.x*.5+.5)*W + 8, y = (-_tag.y*.5+.5)*H - 12;
+    el.style.transform = `translate(${x.toFixed(0)}px,${y.toFixed(0)}px)`;
+  });
+}
+const _tag = new THREE.Vector3();
+
+function fmt(v){ return v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : v.toFixed(0); }
+/* يكتب في الـ DOM فقط إذا تغيّر النص */
+const _txt = new WeakMap();
+function setText(el, v){ if (_txt.get(el) !== v){ _txt.set(el, v); el.textContent = v; } }
+function updateUI(){
+  setText($('met'), fmtT(S.simMin));
+  setText($('hudRate'), fmt(S.avgRate)); setText($('hudRaw'), fmt(S.avgRaw));
+  setText($('hudCut'), Math.round((1 - S.avgRate/Math.max(1e-6,S.avgRaw))*100) + '%');
+  const eff = S.zones.reduce((a,z)=>a+z.cum,0)/4, raw = S.zones.reduce((a,z)=>a+z.rawCum,0)/4;
+  setText($('effDose'), fmt(eff));
+  const pct = eff/CAREER*100;
+  setText($('careerPct'), (pct < 1 ? pct.toFixed(3) : pct.toFixed(1)) + '%');
+  $('careerBar').style.width = Math.min(100, pct) + '%';
+  setText($('avoided'), fmt(raw-eff) + ' mSv');
+  S.zones.forEach((zs,i)=>{
+    const e = zoneEls[i];
+    e.dot.className = 'dot lvl' + zs.status; setText(e.stl, STATUS[zs.status].label);
+    setText(e.rt, fmt(zs.rate)); setText(e.cm, fmt(zs.cum)); setText(e.ig, String(Math.round(zs.integ*100)));
+    e.bar.style.width = (zs.integ*100)+'%'; e.bar.style.background = zs.integ<1 ? 'var(--amber)' : 'var(--teal)';
+    const html = `<span class="dot lvl${zs.status}"></span><b>${ZONES[i].name}</b> ${fmt(zs.rate)}`;
+    if (tagCache[i] !== html){ tagCache[i] = html; tags[i].innerHTML = html; }
+  });
+  setText($('vHR'), String(Math.round(S.hr))); setText($('vSpO2'), String(Math.round(S.spo2)));
+  setText($('vTemp'), S.temp.toFixed(1)); setText($('vResp'), String(Math.round(S.resp)));
+  setText($('pSun'), Math.round(S.harvestSun)+' mW'); setText($('pRad'), Math.round(S.harvestRad)+' mW');
+  setText($('pDraw'), DRAW_MW+' mW');
+  setText($('batt'), Math.round(S.batt)+'%'); $('battBar').style.width = S.batt+'%';
+  const net = S.harvestSun + S.harvestRad - DRAW_MW;
+  setText($('pState'), !S.shield ? 'Sensors on suit battery (no harvesting layer)' : net >= 0 ? 'Self-powered, charging' : 'Drawing on buffer battery');
+  const ov = $('overall'); let lvl = S.worst, txt;
+  if (S.worst >= 3) txt = 'Critical exposure';
+  else if (S.storm && S.stormAlerted) { txt = 'Solar storm: shelter advised'; lvl = Math.max(lvl,2); }
+  else if (S.worst === 2) txt = 'Exposure warning';
+  else if (S.zones.some(z=>z.integ<1)) { txt = 'Self-healing in progress'; lvl = Math.max(lvl,1); }
+  else if (S.worst === 1) txt = 'Elevated exposure';
+  else txt = 'All systems nominal';
+  ov.className = 'overall lvl'+lvl; setText($('overallTxt'), txt);
+}
+
+function infer(){
+  const tot = S.hits.gcr + S.hits.proton + S.hits.electron + S.hits.bg + 1e-6;
+  const target = {gcr:S.hits.gcr/tot, proton:S.hits.proton/tot, electron:S.hits.electron/tot, bg:S.hits.bg/tot};
+  for (const k in S.cls){ S.cls[k] += (target[k]-S.cls[k])*.35; clsRows[k].bar.style.width = (S.cls[k]*100).toFixed(0)+'%'; clsRows[k].n.textContent = Math.round(S.cls[k]*100)+'%'; }
+  for (const k in S.hits) S.hits[k] *= .55;
+  const top = Object.entries(S.cls).sort((a,b)=>b[1]-a[1])[0][0];
+  const names = {gcr:'cosmic rays', proton:'solar protons', electron:'trapped electrons', bg:'background'};
+  $('infer').textContent = `Inference ${(2.6+Math.random()*1.4).toFixed(1)} ms on the suit, int8 model. Dominant source: ${names[top]}.`;
+}
+
+/* إيقاف تلقائي عند إخفاء التبويب */
+document.addEventListener('visibilitychange', ()=>{ last = performance.now(); });
+
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  if (document.hidden) return;
+  if (!S.paused){
+    step(dt); moveParticles(dt);
+    const dec = Math.pow(.35, dt); for (const k in spec) for (let i=0;i<NB;i++) spec[k][i] *= dec;
+    inferAcc += dt; histAcc += dt;
+    if (inferAcc > .5){ inferAcc = 0; infer(); }
+    if (histAcc > .25){
+      histAcc = 0;
+      S.doseHist.push(S.avgRate); S.rawHist.push(S.avgRaw); S.hrHist.push(S.hr);
+      [S.doseHist,S.rawHist,S.hrHist].forEach(a=>{ while (a.length>120) a.shift(); });
+    }
+  }
+  updateVisuals(now/1000, S.paused ? 0 : dt);
+  uiAcc += dt;
+  if (uiAcc > .12){
+    uiAcc = 0; updateUI(); drawSpec();
+    spark($('doseSpark'), [S.rawHist, S.doseHist], [themeCol.rad, themeCol.teal], [0, 1]);
+    spark($('hrSpark'), [S.hrHist], [themeCol.rad], [60, 100]);
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+setEnv('leo'); selectZone(1);
+log('Titan-Pero shield online. 4 zones monitored.', 'g');
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
